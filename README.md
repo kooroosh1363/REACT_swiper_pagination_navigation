@@ -106,9 +106,11 @@ Requirements:
 - npm
 
 ```bash
-npm install --no-audit --no-fund
+npm install --legacy-peer-deps --no-audit --no-fund
 npm run dev
 ```
+
+The `--legacy-peer-deps` flag avoids an npm 10 Arborist resolver crash observed on current GitHub-hosted Node 22 runners; it is a package-manager workaround, not an application runtime requirement.
 
 ## Tests
 
