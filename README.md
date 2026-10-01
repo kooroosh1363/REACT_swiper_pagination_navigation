@@ -1,70 +1,178 @@
-# Getting Started with Create React App
+# ORBIT — Responsive Carousel Interaction Lab
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+ORBIT modernizes a 2023 React + Swiper carousel exercise into a focused interaction-engineering demo.
 
-## Available Scripts
+The original repository demonstrated Swiper navigation, fraction pagination, and breakpoints, but it also contained Create React App boilerplate, fake commerce links, placeholder product data, inaccessible clickable icons, invalid CSS, unused dependencies, and no meaningful tests or CI.
 
-In the project directory, you can run:
+## Engineering focus
 
-### `npm start`
+ORBIT treats carousel behavior as an explicit system instead of a styling trick:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- responsive card-density policy
+- deterministic edge-state handling
+- keyboard navigation
+- accessible pagination
+- real button semantics for previous/next controls
+- shareable active-slide URL state
+- pure policy functions that can be tested without rendering React
+- static GitHub Pages deployment
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Architecture
 
-### `npm test`
+```text
+src/data/slides.js
+        │
+        ▼
+src/lib/carouselPolicy.js
+        ├─ viewport density policy
+        ├─ index clamping
+        ├─ previous / next bounds
+        ├─ position formatting
+        └─ URL read/write rules
+        │
+        ▼
+src/App.jsx
+        ├─ Swiper integration
+        ├─ active slide synchronization
+        ├─ edge-state controls
+        ├─ progress state
+        └─ viewport policy display
+        │
+        ▼
+Swiper 14 + static frontend
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## What changed
 
-### `npm run build`
+### Tooling
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Create React App → Vite
+- React 18 → React 19
+- Swiper 10 → Swiper 14
+- removed Bootstrap
+- removed React Bootstrap
+- removed React Icons
+- removed CRA testing boilerplate and Web Vitals
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Dependencies are intentionally small and pinned exactly.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Interaction
 
-### `npm run eject`
+The carousel now exposes and synchronizes:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- active slide
+- beginning/end state
+- progress
+- viewport density tier
+- active slide URL state
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The URL uses `?slide=<id>` and preserves unrelated query parameters.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Accessibility
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- semantic previous/next buttons
+- disabled edge controls
+- keyboard navigation
+- Swiper A11y module
+- labeled pagination
+- skip navigation
+- visible focus treatment
+- reduced-motion handling
+- descriptive image alt text
 
-## Learn More
+### Product scope
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The old "Add to Card" and "Buy Now" links were removed.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+ORBIT is an interaction lab, not an e-commerce application. It does not pretend to have cart, checkout, inventory, authentication, analytics, or a backend.
 
-### Code Splitting
+## Responsive policy
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+| Width | Tier | Slides per view |
+| --- | --- | ---: |
+| < 520px | mobile | 1.08 |
+| ≥ 520px | compact | 1.45 |
+| ≥ 760px | tablet | 2.15 |
+| ≥ 1040px | desktop | 3 |
+| ≥ 1280px | wide | 3.4 |
 
-### Analyzing the Bundle Size
+Partial neighboring slides are deliberate: they communicate horizontal continuation without requiring hidden affordances.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Local development
 
-### Making a Progressive Web App
+Requirements:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- Node.js 22+
+- npm
 
-### Advanced Configuration
+```bash
+npm install --legacy-peer-deps --no-audit --no-fund
+npm run dev
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+The `--legacy-peer-deps` flag avoids an npm 10 Arborist resolver crash observed on current GitHub-hosted Node 22 runners; it is a package-manager workaround, not an application runtime requirement.
 
-### Deployment
+## Tests
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+npm test
+```
 
-### `npm run build` fails to minify
+The Vitest suite covers:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- invalid viewport recovery
+- breakpoint boundary selection
+- negative index clamping
+- upper-bound index clamping
+- previous navigation at the first slide
+- next navigation at the final slide
+- one-based position formatting
+- invalid URL slide recovery
+- valid URL slide recovery
+- query-parameter preservation
+- canonical first-slide URLs
+
+## Quality gate
+
+```bash
+npm run check
+```
+
+Runs syntax checks, all tests, and a Vite production build.
+
+## CI
+
+`.github/workflows/quality.yml` runs the quality gate on pull requests and pushes to `main`.
+
+## Deployment
+
+ORBIT is a static frontend and includes a manual GitHub Pages workflow.
+
+1. Open **Settings → Pages**.
+2. Set **Source** to **GitHub Actions**.
+3. Open **Actions → Deploy Pages**.
+4. Run the workflow.
+
+## Security review
+
+No API keys, tokens, passwords, credentials, or server endpoints are required.
+
+The project contains no user HTML injection, auth assumptions, payment behavior, or sensitive browser storage.
+
+## Scope and limitations
+
+ORBIT intentionally does not implement:
+
+- looping
+- autoplay
+- remote content fetching
+- commerce flows
+- user accounts
+- analytics
+- server-side state
+
+The engineering goal is predictable, inspectable carousel interaction—not feature volume.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
